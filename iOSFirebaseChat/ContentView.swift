@@ -2,25 +2,41 @@
 //  ContentView.swift
 //  iOSFirebaseChat
 //
-//  Created by Aditt on 20/07/23.
+//  Created by Aditt on 22/07/23.
 //
 
 import SwiftUI
 
-struct ContentView: View {
-    var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundColor(.accentColor)
-            Text("Hello, world!")
+class RootModel: ObservableObject {
+    @Published var isUserCurrentlyLoggedOut = false
+
+    init() {
+        DispatchQueue.main.async {
+            self.isUserCurrentlyLoggedOut = FirebaseManager.shared.auth.currentUser?.uid == nil
         }
-        .padding()
+    }
+}
+
+struct ContentView: View {
+    @StateObject var vm = RootModel()
+    
+    var body: some View {
+        ZStack {
+            if vm.isUserCurrentlyLoggedOut {
+                LoginView()
+                    .environmentObject(vm)
+            } else {
+                MainMessagesView()
+                    .environmentObject(vm)
+            }
+        }
+        .animation(.default, value: vm.isUserCurrentlyLoggedOut)
     }
 }
 
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
         ContentView()
+            .environmentObject(RootModel())
     }
 }
